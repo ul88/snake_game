@@ -6,3 +6,5 @@
 
 ### 스네이크 게임 실제 게임 화면
 <hr>
+
+![image](https://github.com/ul88/snake_game/assets/127708502/b4e62a81-89c9-4516-92d8-174321a06e94)
