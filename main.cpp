@@ -259,10 +259,10 @@ void RandomApple(object_t(*map)[COLS], int& fieldAppleCnt) {
 	int temp = rand() % 5 + 1; // 한 번에 생성될 사과 개수
 	int appleCnt = temp;
 	while (appleCnt) {
-		randX = rand() % ROWS;
-		randY = rand() % COLS;
-		if (map[randX][randY] == OBJECT_SPACE) {
-			map[randX][randY] = OBJECT_APPLE;
+		randY = rand() % ROWS;
+		randX = rand() % COLS;
+		if (map[randY][randY] == OBJECT_SPACE) {
+			map[randY][randX] = OBJECT_APPLE;
 			appleCnt--;
 		}
 	}
