@@ -199,6 +199,10 @@ void gameStart() {
 			}
 		}
 
+		if (_kbhit()) {
+			while (_kbhit()) _getch();
+		}
+
 		gameEnd = Move(map, dir, headY, headX, tail, mainY, mainX, appleCnt, isApple, fieldAppleCnt);
 
 		MapPrint(map, appleCnt);
@@ -295,6 +299,7 @@ bool startPage() {
 
 int main()
 {
+	ios::sync_with_stdio(0);
 	srand(time(NULL));
 	
 	bool start = 0;
