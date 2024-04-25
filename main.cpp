@@ -233,9 +233,7 @@ bool Move(object_t(*map)[COLS], int direction, int& headY, int& headX, int& tail
 	if (map[headY][headX] == OBJECT_APPLE) {
 		(tail)++;
 		(appleCnt)++;
-		if (--fieldAppleCnt == 0) {
-			isApple = 0;
-		}
+		--fieldAppleCnt;
 
 		mainY[tail - 1] = mainY[tail - 2] - (mainY[tail - 2] - (tail - 3 >= 0 ? mainY[tail - 3] : headY));
 		mainX[tail - 1] = mainX[tail - 2] - (mainX[tail - 2] - (tail - 3 >= 0 ? mainX[tail - 3] : headX));
@@ -261,7 +259,7 @@ void RandomApple(object_t(*map)[COLS], int& fieldAppleCnt) {
 	while (appleCnt) {
 		randY = rand() % ROWS;
 		randX = rand() % COLS;
-		if (map[randY][randY] == OBJECT_SPACE) {
+		if (map[randY][randX] == OBJECT_SPACE) {
 			map[randY][randX] = OBJECT_APPLE;
 			appleCnt--;
 		}
@@ -320,9 +318,8 @@ void GameStart() {
 	Init(map, headY, headX, tail, mainY, mainX);
 
 	while (1) {
-		if (isApple == 0) {
+		if (fieldAppleCnt <= 0) {
 			RandomApple(map, fieldAppleCnt);
-			isApple = 1;
 		}
 		if (IsBoom(map ,boomLocation)) {
 			RandomBoom(map, boomLocation);
@@ -344,7 +341,7 @@ void GameStart() {
 			cout << "#        # #   #    #   #" << "\n";
 			cout << "#####    #  #  #    #   #" << "\n";
 			cout << "#        #   # #    #   #" << "\n";
-			cout << "#####    #    ##    ####" << "\n";
+			cout << "#####    #    ##    ####" << "\n\n";
 			cout << "총 먹은 사과의 개수 : " << appleCnt << "개 입니다.\n";
 			cout << "엔터 키를 누르시면 시작 화면으로 돌아갑니다.";
 			while (KeyInput(2));
