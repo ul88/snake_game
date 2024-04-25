@@ -4,10 +4,18 @@
 #include<Windows.h>
 #include<conio.h>
 
+#define ENTER 13
 #define ESC 27
+#define RIGHT 77
+#define LEFT 75
+#define UP 72
+#define DOWN 80
 
 #define ROWS 25
 #define COLS 25
+
+#define BOOM_SIZE 4
+#define BOOM_HOLDING_TIME 30
 
 using namespace std;
 
@@ -16,17 +24,54 @@ typedef enum object {
 	OBJECT_WALL,
 	OBJECT_HEAD,
 	OBJECT_TAIL,
-	OBJECT_APPLE
+	OBJECT_APPLE,
+	OBJECT_BOOM,
+	OBJECT_HALF_BOOM,
+	OBJECT_EMPTY_BOOM
 } object_t;
 
-typedef enum Keyboard {
-	RIGHT,
-	LEFT,
-	UP,
-	DOWN
-} keyboard_t;
+typedef struct BoomInformation {
+	int x;
+	int y;
+	int time;
+}boomInfo_t;
 
-void cursorView() {
+void CursorView();
+void gotoxy(int x,int y);
+void Init(object_t(*map)[COLS], int& headY, int& headX, int& tail, int mainY[ROWS * COLS], int mainX[ROWS * COLS]);
+int KeyInput(int type);
+bool Move(object_t(*map)[COLS], int direction, int& headY, int& headX, int& tail,
+	int mainY[ROWS * COLS], int mainX[ROWS * COLS], int& appleCnt, int& isApple, int& fieldAppleCnt);
+void RandomApple(object_t(*map)[COLS], int& fieldAppleCnt);
+void MapPrint(object_t(*map)[COLS], int appleCnt);
+void GameStart();
+bool IsBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]);
+void RandomBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]);
+bool StartMenu();
+bool StartPage();
+
+int main()
+{
+	ios::sync_with_stdio(0);
+	srand(time(NULL));
+	
+	bool start = 0;
+	CursorView();
+	while (1) {
+		system("cls");
+		start = StartPage();
+		if (start) {
+			system("cls");
+			GameStart();
+		}
+		else {
+			break;
+		}
+	}
+	return 0;
+}
+
+void CursorView() {
 	CONSOLE_CURSOR_INFO cursorInfo;
 	cursorInfo.dwSize = 1;
 	cursorInfo.bVisible = false; //커서 Visible TRUE(보임) FALSE(숨김)
@@ -41,11 +86,10 @@ void gotoxy(int x, int y) {
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
 }
 
-void Init(object_t(*map)[COLS], int& headY, int& headX, int& Tail, int mainY[ROWS * COLS], int mainX[ROWS*COLS]) {
-	cursorView();
+void Init(object_t(*map)[COLS], int& headY, int& headX, int& tail, int mainY[ROWS * COLS], int mainX[ROWS * COLS]) {
 	headY = 10;
 	headX = 10;
-	Tail = 1;
+	tail = 1;
 	mainY[0] = headY;
 	mainX[0] = headX - 1;
 	map[headY][headX] = OBJECT_HEAD;
@@ -66,108 +110,10 @@ void Init(object_t(*map)[COLS], int& headY, int& headX, int& Tail, int mainY[ROW
 	}
 }
 
-bool Move(object_t(*map)[COLS], keyboard_t direction, int& headY, int& headX, int& tail,
-	int mainY[ROWS * COLS], int mainX[ROWS * COLS], int& appleCnt, int& isApple, int& fieldAppleCnt)
-{
-	map[mainY[tail - 1]][mainX[tail - 1]] = OBJECT_SPACE;
-	for (int i = tail - 1; i > 0; i--) {
-		mainY[i] = mainY[i - 1];
-		mainX[i] = mainX[i - 1];
-		map[mainY[i]][mainX[i]] = OBJECT_TAIL;
-	}
-
-	mainY[0] = headY;
-	mainX[0] = headX;
-	map[mainY[0]][mainX[0]] = OBJECT_TAIL;
-
-	if (direction == RIGHT) (headX)++;
-	else if (direction == LEFT) (headX)--;
-	else if (direction == UP) (headY)--;
-	else (headY)++;
-
-	//사과를 먹었을 때
-	if (map[headY][headX] == OBJECT_APPLE) {
-		(tail)++;
-		(appleCnt)++;
-		if (--fieldAppleCnt == 0) {
-			isApple = 0;
-		}
-
-		mainY[tail - 1] = mainY[tail - 2] - (mainY[tail - 2] - (tail - 3 >= 0 ? mainY[tail - 3] : headY));
-		mainX[tail - 1] = mainX[tail - 2] - (mainX[tail - 2] - (tail - 3 >= 0 ? mainX[tail - 3] : headX));
-
-		map[mainY[tail - 1]][mainX[tail - 1]] = OBJECT_TAIL;
-	}
-	//벽에 닿았거나 자신의 꼬리에 닿았을 때
-	else if (map[headY][headX] == OBJECT_WALL || map[headY][headX] == OBJECT_TAIL) {
-		return true;
-	}
-
-	map[headY][headX] = OBJECT_HEAD;
-	return false;
-}
-
-void RandomApple(object_t(*map)[COLS], int& fieldAppleCnt) {
-	int randX = 0;
-	int randY = 0;
-	int temp = rand()%5+1; // 한 번에 생성될 사과 개수
-	int appleCnt = temp;
-	while (appleCnt) {
-		randX = rand() % ROWS;
-		randY = rand() % COLS;
-		if (map[randX][randY] == OBJECT_SPACE) {
-			map[randX][randY] = OBJECT_APPLE;
-			appleCnt--;
-		}
-	}
-
-	fieldAppleCnt = temp;
-}
-
-void MapPrint(object_t(*map)[COLS], int appleCnt) {
-	cout<<"현재 먹은 사과의 개수 : "<<appleCnt<<"\n";
-	for (int i = 0; i < ROWS; ++i) {
-		for (int j = 0; j < COLS; ++j) {
-			switch (map[i][j]) {
-			case OBJECT_SPACE:
-				cout<<". ";
-				break;
-			case OBJECT_WALL:
-				cout<<"# ";
-				break;
-			case OBJECT_HEAD:
-				cout<<"O ";
-				break;
-			case OBJECT_TAIL:
-				cout<<"o ";
-				break;
-			case OBJECT_APPLE:
-				cout<<"A ";
-				break;
-			default:
-				break;
-			}
-		}
-		cout<<"\n";
-	}
-}
-
-void gameStart() {
-	object_t map[ROWS][COLS] = { OBJECT_SPACE, };
-	int appleCnt = 0, fieldAppleCnt = 0, isApple = 0, headX = 0, headY = 0, tail = 0;
-	bool gameEnd = false;
-	int* mainX = new int[ROWS * COLS], * mainY = new int[ROWS * COLS];
+int KeyInput(int type) {
 	char key;
-	keyboard_t dir = RIGHT;
-
-	Init(map, headY, headX, tail, mainY, mainX);
-
-	while (1) {
-		if (isApple == 0) {
-			RandomApple(map, fieldAppleCnt);
-			isApple = 1;
-		}
-
+	if (type == 1) {
+		int dir = -1;
 		if (_kbhit()) {
 			key = _getch();
 			if (key == -32) {
@@ -202,6 +148,189 @@ void gameStart() {
 		if (_kbhit()) {
 			while (_kbhit()) _getch();
 		}
+		return dir;
+	}
+	else if (type == 2) {
+		if (_kbhit()) {
+			while (_kbhit()) _getch();
+		}
+		key = _getch();
+		if (key == -32) {
+			key = _getch();
+		}
+		switch (key) {
+		case ENTER:
+			system("cls");
+			return 0;
+			break;
+		default:
+			break;
+		}
+		return 1;
+	}
+	else if (type == 3) {
+		int x = 21;
+		int y = 11;
+		while (1) {
+			if (_kbhit()) {
+				key = _getch();
+				if (key == -32) {
+					key = _getch();
+				}
+				switch (key) {
+				case UP:
+					if (y == 12) {
+						gotoxy(x - 2, y);
+						cout << " ";
+						gotoxy(x - 2, --y);
+						cout << ">";
+					}
+					break;
+				case DOWN:
+					if (y == 11) {
+						gotoxy(x - 2, y);
+						cout << " ";
+						gotoxy(x - 2, ++y);
+						cout << ">";
+					}
+					break;
+				case ENTER:
+					if (y == 11) {
+						return 1;
+					}
+					else {
+						return 0;
+					}
+					break;
+				default:
+					break;
+				}
+			}
+		}
+	}
+}
+
+bool Move(object_t(*map)[COLS], int direction, int& headY, int& headX, int& tail,
+	int mainY[ROWS * COLS], int mainX[ROWS * COLS], int& appleCnt, int& isApple, int& fieldAppleCnt)
+{
+	map[mainY[tail - 1]][mainX[tail - 1]] = OBJECT_SPACE;
+	for (int i = tail - 1; i > 0; i--) {
+		mainY[i] = mainY[i - 1];
+		mainX[i] = mainX[i - 1];
+		map[mainY[i]][mainX[i]] = OBJECT_TAIL;
+	}
+
+	mainY[0] = headY;
+	mainX[0] = headX;
+	map[mainY[0]][mainX[0]] = OBJECT_TAIL;
+
+	if (direction == RIGHT) (headX)++;
+	else if (direction == LEFT) (headX)--;
+	else if (direction == UP) (headY)--;
+	else (headY)++;
+
+	//사과를 먹었을 때
+	if (map[headY][headX] == OBJECT_APPLE) {
+		(tail)++;
+		(appleCnt)++;
+		if (--fieldAppleCnt == 0) {
+			isApple = 0;
+		}
+
+		mainY[tail - 1] = mainY[tail - 2] - (mainY[tail - 2] - (tail - 3 >= 0 ? mainY[tail - 3] : headY));
+		mainX[tail - 1] = mainX[tail - 2] - (mainX[tail - 2] - (tail - 3 >= 0 ? mainX[tail - 3] : headX));
+
+		map[mainY[tail - 1]][mainX[tail - 1]] = OBJECT_TAIL;
+	}
+	//벽에 닿았거나 자신의 꼬리에 닿았을 때
+	else if (map[headY][headX] == OBJECT_WALL || map[headY][headX] == OBJECT_TAIL 
+		|| map[headY][headX] == OBJECT_BOOM || map[headY][headX] == OBJECT_HALF_BOOM
+		|| map[headY][headX] == OBJECT_EMPTY_BOOM) {
+		return true;
+	}
+
+	map[headY][headX] = OBJECT_HEAD;
+	return false;
+}
+
+void RandomApple(object_t(*map)[COLS], int& fieldAppleCnt) {
+	int randX = 0;
+	int randY = 0;
+	int temp = rand() % 5 + 1; // 한 번에 생성될 사과 개수
+	int appleCnt = temp;
+	while (appleCnt) {
+		randX = rand() % ROWS;
+		randY = rand() % COLS;
+		if (map[randX][randY] == OBJECT_SPACE) {
+			map[randX][randY] = OBJECT_APPLE;
+			appleCnt--;
+		}
+	}
+
+	fieldAppleCnt = temp;
+}
+
+void MapPrint(object_t(*map)[COLS], int appleCnt) {
+	cout << "현재 먹은 사과의 개수 : " << appleCnt << "\n";
+	for (int i = 0; i < ROWS; ++i) {
+		for (int j = 0; j < COLS; ++j) {
+			switch (map[i][j]) {
+			case OBJECT_SPACE:
+				cout << ". ";
+				break;
+			case OBJECT_WALL:
+				cout << "# ";
+				break;
+			case OBJECT_HEAD:
+				cout << "O ";
+				break;
+			case OBJECT_TAIL:
+				cout << "o ";
+				break;
+			case OBJECT_APPLE:
+				cout << "A ";
+				break;
+			case OBJECT_BOOM:
+				cout << "● ";
+				break;
+			case OBJECT_HALF_BOOM:
+				cout << "◎ ";
+				break;
+			case OBJECT_EMPTY_BOOM:
+				cout << "⊙ ";
+				break;
+			default:
+				break;
+			}
+		}
+		cout << "\n";
+	}
+}
+
+void GameStart() {
+	object_t map[ROWS][COLS] = { OBJECT_SPACE, };
+	int appleCnt = 0, fieldAppleCnt = 0, isApple = 0, headX = 0, headY = 0, tail = 0;
+	bool gameEnd = false;
+	int* mainX = new int[ROWS * COLS], * mainY = new int[ROWS * COLS];
+	boomInfo_t* boomLocation = new boomInfo_t[BOOM_SIZE] {};
+	bool isBoom = true;
+	char key;
+	int dir = RIGHT;
+
+	Init(map, headY, headX, tail, mainY, mainX);
+
+	while (1) {
+		if (isApple == 0) {
+			RandomApple(map, fieldAppleCnt);
+			isApple = 1;
+		}
+		if (IsBoom(map ,boomLocation)) {
+			RandomBoom(map, boomLocation);
+		}
+
+		int temp = KeyInput(1);
+
+		if (temp != -1) dir = temp;
 
 		gameEnd = Move(map, dir, headY, headX, tail, mainY, mainX, appleCnt, isApple, fieldAppleCnt);
 
@@ -209,111 +338,84 @@ void gameStart() {
 		if (gameEnd) {
 			cout << "사망하셨습니다.\n";
 			Sleep(3000);
-			system("cls");			
+			system("cls");
+			cout << "\n\n";
+			cout << "#####    ##    #    ####" << "\n";
+			cout << "#        # #   #    #   #" << "\n";
+			cout << "#####    #  #  #    #   #" << "\n";
+			cout << "#        #   # #    #   #" << "\n";
+			cout << "#####    #    ##    ####" << "\n";
 			cout << "총 먹은 사과의 개수 : " << appleCnt << "개 입니다.\n";
 			cout << "엔터 키를 누르시면 시작 화면으로 돌아갑니다.";
-			while (1) {
-				key = _getch();
-				if (key == -32) {
-					key = _getch();
-				}
-				switch (key) {
-				case 13: //ENTER
-					system("cls");
-					return;
-					break;
-				default:
-					break;
-				}
-			}
+			while (KeyInput(2));
+			break;
 		}
 		Sleep(200);
 		gotoxy(0, 0);
 	}
 
-
-
 	delete[] mainX;
 	delete[] mainY;
+	delete[] boomLocation;
 }
 
-bool startMenu() {
-	int x = 20;
+bool StartMenu() {
+	int x = 21;
 	int y = 11;
 	gotoxy(x - 2, y);
 	cout << "> START";
-	gotoxy(x, y+1);
+	gotoxy(x, y + 1);
 	cout << " END";
 
 	char key;
-	while (1) {
-		if (_kbhit()) {
-			key = _getch();
-			if (key == -32) {
-				key = _getch();
-			}
-			switch (key) {
-			case 72: //UP
-				if (y == 12) {
-					gotoxy(x - 2, y);
-					cout <<" ";
-					gotoxy(x - 2, --y);
-					cout << ">";
-				}
-				break;
-			case 80: // DOWN
-				if (y == 11) {
-					gotoxy(x - 2, y);
-					cout << " ";
-					gotoxy(x - 2, ++y);
-					cout << ">";
-				}
-				break;
-			case 13: // ENTER
-				if (y == 11) {
-					return true;
-				}
-				else {
-					return false;
-				}
-				break;
-			default:
-				break;
-			}
-		}
-	}
-	return false;
+	return KeyInput(3);
 }
 
-bool startPage() {
+bool StartPage() {
 	cout << "\n\n";
-	cout << "######   ##    #      #      #  #   #####" << "\n";
-	cout << "#        # #   #     # #     # #    #" << "\n";
-	cout << "#####    #  #  #    #   #    ##     #####" << "\n";
-	cout << "     #   #   # #   #######   # #    #" << "\n";
-	cout << "#####    #    ##  #       #  #  #   #####" << "\n";
-	cout << "          방향키로 선택해주세요.\n";
-	cout << "   엔터를 누르시면 커서의 위치에서 시작됩니다.\n";
-	return startMenu();
+	cout << "#####    ##    #       #       #  #    #####" << "\n";
+	cout << "#        # #   #      # #      # #     #" << "\n";
+	cout << "#####    #  #  #     #   #     ##      #####" << "\n";
+	cout << "     #   #   # #    #######    # #     #" << "\n";
+	cout << "#####    #    ##   #       #   #  #    #####" << "\n";
+	cout << "           방향키로 선택해주세요.\n";
+	cout << "    엔터를 누르시면 커서의 위치에서 시작됩니다.\n";
+	return StartMenu();
 }
 
-int main()
-{
-	ios::sync_with_stdio(0);
-	srand(time(NULL));
-	
-	bool start = 0;
-	while (1) {
-		system("cls");
-		start = startPage();
-		if (start) {
-			system("cls");
-			gameStart();
-			
-		}
-		else {
-			break;
+bool IsBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]) {
+	bool flag = true;
+	for (int i = 0; i < BOOM_SIZE; i++) {
+		if (boomLocation[i].time != 0) {
+			flag = false;
+			boomLocation[i].time--;
+			if (boomLocation[i].time == BOOM_HOLDING_TIME / 3 * 2) {
+				map[boomLocation[i].y][boomLocation[i].x] = OBJECT_HALF_BOOM;
+			}
+			else if (boomLocation[i].time == BOOM_HOLDING_TIME / 3) {
+				map[boomLocation[i].y][boomLocation[i].x] = OBJECT_EMPTY_BOOM;
+			}
+			else if (boomLocation[i].time == 0) {
+				map[boomLocation[i].y][boomLocation[i].x] = OBJECT_SPACE;
+			}
 		}
 	}
-	return 0;
+	return flag;
+}
+
+void RandomBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]) {
+	int createBoomCnt = rand() % BOOM_SIZE;
+	for (int i = 0; i < createBoomCnt; i++) {
+		while (1) {
+			int randY = rand() % ROWS;
+			int randX = rand() % COLS;
+			if (map[randY][randX] == OBJECT_SPACE) {
+				map[randY][randX] = OBJECT_BOOM;
+				boomLocation[i].y = randY;
+				boomLocation[i].x = randX;
+				break;
+			}
+		}
+		boomLocation[i].time = BOOM_HOLDING_TIME;
+	}
 }
