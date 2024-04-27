@@ -13,4 +13,9 @@
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="rank_data.txt">
+      <Filter>Source</Filter>
+    </Text>
+  </ItemGroup>
 </Project>

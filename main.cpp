@@ -1,7 +1,13 @@
 #include<iostream>
+#include<fstream>
 #include<string>
 #include<ctime>
-#include<Windows.h>
+#include<string>
+#include<vector>
+#include<algorithm>
+#include<sstream>
+
+#include<windows.h>
 #include<conio.h>
 
 #define ENTER 13
@@ -36,10 +42,23 @@ typedef struct BoomInformation {
 	int time;
 }boomInfo_t;
 
+typedef struct UserRanking {
+	string name;
+	int score;
+}userRanking_t;
+
+// 전역 변수
+vector<userRanking_t> userRank;
+string userName = "";
+
 void CursorView();
 void gotoxy(int x,int y);
-void Init(object_t(*map)[COLS], int& headY, int& headX, int& tail, int mainY[ROWS * COLS], int mainX[ROWS * COLS]);
+void InitFile();
+void InitGame(object_t(*map)[COLS], int& headY, int& headX, int& tail, int mainY[ROWS * COLS], int mainX[ROWS * COLS]);
+bool compare(userRanking_t a, userRanking_t b);
 int KeyInput(int type);
+void KeyInputGame(int& dir);
+void LoginPage();
 bool Move(object_t(*map)[COLS], int direction, int& headY, int& headX, int& tail,
 	int mainY[ROWS * COLS], int mainX[ROWS * COLS], int& appleCnt, int& isApple, int& fieldAppleCnt);
 void RandomApple(object_t(*map)[COLS], int& fieldAppleCnt);
@@ -47,28 +66,50 @@ void MapPrint(object_t(*map)[COLS], int appleCnt);
 void GameStart();
 bool IsBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]);
 void RandomBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]);
-bool StartMenu();
-bool StartPage();
+int StartMenu();
+int StartPage();
+int RankCheck(int appleCnt);
+void RankShow();
 
 int main()
 {
 	ios::sync_with_stdio(0);
 	srand(time(NULL));
 	
-	bool start = 0;
-	CursorView();
+	int start = 0;
+	InitFile();
+	LoginPage();
 	while (1) {
 		system("cls");
 		start = StartPage();
-		if (start) {
+		if (start == 1) {
 			system("cls");
 			GameStart();
+		}
+		else if (start == 2) {
+			RankShow();
 		}
 		else {
 			break;
 		}
 	}
 	return 0;
+}
+
+void InitFile() {
+	//파일 읽기
+	ifstream file("rank_data.txt");
+	if (file.is_open()) {
+		string line;
+		while (getline(file, line)) {
+			string name, score;
+			stringstream temp(line);
+			temp >> name >> score;
+			userRank.push_back({ name,stoi(score) });
+		}
+		sort(userRank.begin(), userRank.end(), compare);
+		file.close();
+	}
 }
 
 void CursorView() {
@@ -86,7 +127,12 @@ void gotoxy(int x, int y) {
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
 }
 
-void Init(object_t(*map)[COLS], int& headY, int& headX, int& tail, int mainY[ROWS * COLS], int mainX[ROWS * COLS]) {
+bool compare(userRanking_t a, userRanking_t b) {
+	return a.score > b.score;
+}
+
+void InitGame(object_t(*map)[COLS], int& headY, int& headX, int& tail, int mainY[ROWS * COLS], int mainX[ROWS * COLS]) {
+	
 	headY = 10;
 	headX = 10;
 	tail = 1;
@@ -110,47 +156,48 @@ void Init(object_t(*map)[COLS], int& headY, int& headX, int& tail, int mainY[ROW
 	}
 }
 
+void KeyInputGame(int& dir) {
+	char key;
+	if (_kbhit()) {
+		key = _getch();
+		if (key == -32) {
+			key = _getch();
+		}
+		switch (key) {
+		case 77:
+			if (dir == LEFT);
+			else dir = RIGHT;
+			break;
+		case 75:
+			if (dir == RIGHT);
+			else dir = LEFT;
+			break;
+		case 72:
+			if (dir == DOWN);
+			else dir = UP;
+			break;
+		case 80:
+			if (dir == UP);
+			else dir = DOWN;
+			break;
+		case ESC:
+			gotoxy(0, 26);
+			cout << "일시 정지화면입니다." << "\n";
+			system("pause");
+			system("cls");
+		default:
+			break;
+		}
+	}
+
+	if (_kbhit()) {
+		while (_kbhit()) _getch();
+	}
+}
+
 int KeyInput(int type) {
 	char key;
 	if (type == 1) {
-		int dir = -1;
-		if (_kbhit()) {
-			key = _getch();
-			if (key == -32) {
-				key = _getch();
-			}
-			switch (key) {
-			case 77:
-				if (dir == LEFT);
-				else dir = RIGHT;
-				break;
-			case 75:
-				if (dir == RIGHT);
-				else dir = LEFT;
-				break;
-			case 72:
-				if (dir == DOWN);
-				else dir = UP;
-				break;
-			case 80:
-				if (dir == UP);
-				else dir = DOWN;
-				break;
-			case ESC:
-				cout << "일시 정지화면입니다." << "\n";
-				system("pause");
-				system("cls");
-			default:
-				break;
-			}
-		}
-
-		if (_kbhit()) {
-			while (_kbhit()) _getch();
-		}
-		return dir;
-	}
-	else if (type == 2) {
 		if (_kbhit()) {
 			while (_kbhit()) _getch();
 		}
@@ -168,7 +215,7 @@ int KeyInput(int type) {
 		}
 		return 1;
 	}
-	else if (type == 3) {
+	else if (type == 2) {
 		int x = 21;
 		int y = 11;
 		while (1) {
@@ -179,7 +226,7 @@ int KeyInput(int type) {
 				}
 				switch (key) {
 				case UP:
-					if (y == 12) {
+					if (y > 11 && y<=13) {
 						gotoxy(x - 2, y);
 						cout << " ";
 						gotoxy(x - 2, --y);
@@ -187,7 +234,7 @@ int KeyInput(int type) {
 					}
 					break;
 				case DOWN:
-					if (y == 11) {
+					if (y >= 11 && y < 13) {
 						gotoxy(x - 2, y);
 						cout << " ";
 						gotoxy(x - 2, ++y);
@@ -198,6 +245,9 @@ int KeyInput(int type) {
 					if (y == 11) {
 						return 1;
 					}
+					else if (y == 12) {
+						return 2;
+					}
 					else {
 						return 0;
 					}
@@ -207,6 +257,22 @@ int KeyInput(int type) {
 				}
 			}
 		}
+	}
+	else if (type == 3) {
+		if (!_kbhit()) return 0;
+		key = _getch();
+		if (key == -32) {
+			key = _getch();
+		}
+		switch (key) {
+		case ENTER:
+			system("cls");
+			return 1;
+			break;
+		default:
+			break;
+		}
+		return 0;
 	}
 }
 
@@ -315,7 +381,7 @@ void GameStart() {
 	char key;
 	int dir = RIGHT;
 
-	Init(map, headY, headX, tail, mainY, mainX);
+	InitGame(map, headY, headX, tail, mainY, mainX);
 
 	while (1) {
 		if (fieldAppleCnt <= 0) {
@@ -325,9 +391,7 @@ void GameStart() {
 			RandomBoom(map, boomLocation);
 		}
 
-		int temp = KeyInput(1);
-
-		if (temp != -1) dir = temp;
+		KeyInputGame(dir);
 
 		gameEnd = Move(map, dir, headY, headX, tail, mainY, mainX, appleCnt, isApple, fieldAppleCnt);
 
@@ -343,8 +407,20 @@ void GameStart() {
 			cout << "#        #   # #    #   #" << "\n";
 			cout << "#####    #    ##    ####" << "\n\n";
 			cout << "총 먹은 사과의 개수 : " << appleCnt << "개 입니다.\n";
+			userRank.push_back({userName,appleCnt});
+			sort(userRank.begin(), userRank.end(),compare);
+			cout << userName << "님의 순위는 " << RankCheck(appleCnt) << "입니다.\n";
+			
+			//파일 쓰기
+			ofstream file("rank_data.txt", ios::app);
+			if (file.is_open()) {
+				string line = userName + " " + to_string(appleCnt)+"\n";
+				file << line;
+				file.close();
+			}
+
 			cout << "엔터 키를 누르시면 시작 화면으로 돌아갑니다.";
-			while (KeyInput(2));
+			while (KeyInput(1));
 			break;
 		}
 		Sleep(200);
@@ -356,19 +432,41 @@ void GameStart() {
 	delete[] boomLocation;
 }
 
-bool StartMenu() {
+int StartMenu() {
 	int x = 21;
 	int y = 11;
 	gotoxy(x - 2, y);
 	cout << "> START";
 	gotoxy(x, y + 1);
-	cout << " END";
+	cout << "RANK";
+	gotoxy(x, y + 2);
+	cout << "END";
 
-	char key;
-	return KeyInput(3);
+	return KeyInput(2);
 }
 
-bool StartPage() {
+void LoginPage() {
+	cout << "\n\n";
+	cout << "USER NAME : ";
+	cin >> userName;
+	CursorView();
+	system("cls");
+	cout << "\n\n";
+	cout << "    " << userName << "님 환영합니다!" << "\n";
+	while (1) {
+		gotoxy(4, 3);
+		cout << "엔터키를 누르시오" << "\n";
+		if (KeyInput(3)) break;
+		Sleep(350);
+		if (KeyInput(3)) break;
+		gotoxy(4, 3);
+		cout << "                " << "\n";
+		Sleep(350);
+		if (KeyInput(3)) break;
+	}
+}
+
+int StartPage() {
 	cout << "\n\n";
 	cout << "#####    ##    #       #       #  #    #####" << "\n";
 	cout << "#        # #   #      # #      # #     #" << "\n";
@@ -414,5 +512,73 @@ void RandomBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]) {
 			}
 		}
 		boomLocation[i].time = BOOM_HOLDING_TIME;
+	}
+}
+
+int RankCheck(int appleCnt) {
+	int rank = 1;
+	for (int i = 0; i < userRank.size(); i++) {
+		if (i > 1) {
+			if (userRank[i].score != userRank[i - 1].score) rank++;
+		}
+		if (userRank[i].score == appleCnt) {
+			return rank;
+		}
+	}
+}
+
+void RankShow() {
+	while (1) {
+		system("cls");
+		cout << "#####      #      ##    #    #  #" << "\n";
+		if (KeyInput(3)) break;
+		Sleep(250);
+		cout << "#   #     # #     # #   #    # #" << "\n";
+		if (KeyInput(3)) break;
+		Sleep(250);
+		cout << "#####    #   #    #  #  #    ##" << "\n";
+		if (KeyInput(3)) break;
+		Sleep(250);
+		cout << "#  #    #######   #   # #    # #" << "\n";
+		if (KeyInput(3)) break;
+		Sleep(250);
+		cout << "#   #  #       #  #    ##    #  #" << "\n";
+		if (KeyInput(3)) break;
+		Sleep(250);
+		cout << "---------------------------------"<<"\n";
+		if (KeyInput(3)) break;
+		Sleep(250);
+		cout << "| 순 위 |      이름     | 점 수 |" << "\n";
+		if (KeyInput(3)) break;
+		Sleep(250);
+		cout << "---------------------------------" << "\n";
+		if (KeyInput(3)) break;
+		Sleep(250);
+		int y = 8;
+		int rank = 1;
+		for (int i = 0; i < userRank.size(); i++) {
+			if (i != 0) {
+				if (userRank[i].score != userRank[i - 1].score) rank++;
+			}
+			if (KeyInput(3)) break;
+			Sleep(250);
+			gotoxy(0, y);
+			//cout << "| " << i + 1;
+			printf("| %3d", rank);
+			gotoxy(8, y);
+			cout << "| " << userRank[i].name;
+			gotoxy(24, y);
+			//cout << "| " << userRank[i].score;
+			printf("| %3d", userRank[i].score);
+			gotoxy(32, y);
+			cout << "|" << "\n";
+			if (KeyInput(3)) break;
+			Sleep(250);
+			cout << "---------------------------------" << "\n";
+			y += 2;
+		}
+		Sleep(1000);
+		if (KeyInput(3)) break;
+
 	}
 }
