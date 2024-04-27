@@ -117,6 +117,7 @@ void CursorView() {
 	cursorInfo.dwSize = 1;
 	cursorInfo.bVisible = false; //커서 Visible TRUE(보임) FALSE(숨김)
 	system("title 스네이크 게임");
+	system("mod con: lines=1000 cols=1000");
 	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
 }
 
@@ -529,31 +530,32 @@ int RankCheck(int appleCnt) {
 
 void RankShow() {
 	while (1) {
+		int time = 150;
 		system("cls");
 		cout << "#####      #      ##    #    #  #" << "\n";
 		if (KeyInput(3)) break;
-		Sleep(250);
+		Sleep(time);
 		cout << "#   #     # #     # #   #    # #" << "\n";
 		if (KeyInput(3)) break;
-		Sleep(250);
+		Sleep(time);
 		cout << "#####    #   #    #  #  #    ##" << "\n";
 		if (KeyInput(3)) break;
-		Sleep(250);
+		Sleep(time);
 		cout << "#  #    #######   #   # #    # #" << "\n";
 		if (KeyInput(3)) break;
-		Sleep(250);
+		Sleep(time);
 		cout << "#   #  #       #  #    ##    #  #" << "\n";
 		if (KeyInput(3)) break;
-		Sleep(250);
+		Sleep(time);
 		cout << "---------------------------------"<<"\n";
 		if (KeyInput(3)) break;
-		Sleep(250);
+		Sleep(time);
 		cout << "| 순 위 |      이름     | 점 수 |" << "\n";
 		if (KeyInput(3)) break;
-		Sleep(250);
+		Sleep(time);
 		cout << "---------------------------------" << "\n";
 		if (KeyInput(3)) break;
-		Sleep(250);
+		Sleep(time);
 		int y = 8;
 		int rank = 1;
 		for (int i = 0; i < userRank.size(); i++) {
@@ -561,7 +563,7 @@ void RankShow() {
 				if (userRank[i].score != userRank[i - 1].score) rank++;
 			}
 			if (KeyInput(3)) break;
-			Sleep(250);
+			Sleep(time);
 			gotoxy(0, y);
 			//cout << "| " << i + 1;
 			printf("| %3d", rank);
@@ -573,12 +575,11 @@ void RankShow() {
 			gotoxy(32, y);
 			cout << "|" << "\n";
 			if (KeyInput(3)) break;
-			Sleep(250);
+			Sleep(time);
 			cout << "---------------------------------" << "\n";
 			y += 2;
 		}
-		Sleep(1000);
 		if (KeyInput(3)) break;
-
+		Sleep(1500);
 	}
 }
