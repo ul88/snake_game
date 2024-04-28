@@ -63,9 +63,9 @@ bool Move(object_t(*map)[COLS], int direction, int& headY, int& headX, int& tail
 	int mainY[ROWS * COLS], int mainX[ROWS * COLS], int& appleCnt, int& isApple, int& fieldAppleCnt);
 void RandomApple(object_t(*map)[COLS], int& fieldAppleCnt);
 void MapPrint(object_t(*map)[COLS], int appleCnt);
-void GameStart();
 bool IsBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]);
 void RandomBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]);
+void StartGame();
 int StartMenu();
 int StartPage();
 int RankCheck(int appleCnt);
@@ -84,7 +84,7 @@ int main()
 		start = StartPage();
 		if (start == 1) {
 			system("cls");
-			GameStart();
+			StartGame();
 		}
 		else if (start == 2) {
 			RankShow();
@@ -372,7 +372,7 @@ void MapPrint(object_t(*map)[COLS], int appleCnt) {
 	}
 }
 
-void GameStart() {
+void StartGame() {
 	object_t map[ROWS][COLS] = { OBJECT_SPACE, };
 	int appleCnt = 0, fieldAppleCnt = 0, isApple = 0, headX = 0, headY = 0, tail = 0;
 	bool gameEnd = false;
