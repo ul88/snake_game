@@ -15,7 +15,7 @@ typedef enum object {
 	OBJECT_HEAD,
 	OBJECT_TAIL,
 	OBJECT_APPLE
-} object_t;
+} object;
 
 typedef enum Keyboard {
 	RIGHT,
@@ -31,7 +31,7 @@ void gotoxy(int x, int y) {
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
 }
 
-void Init(object_t (*map)[COLS],int *headY, int *headX,int *Tail, int* mainY, int* mainX) {
+void Init(object (*map)[COLS],int *headY, int *headX,int *Tail, int* mainY, int* mainX) {
 	*headY = 10;
 	*headX = 10;
 	*Tail = 1;
@@ -55,7 +55,7 @@ void Init(object_t (*map)[COLS],int *headY, int *headX,int *Tail, int* mainY, in
 	}
 }
 
-bool Move(object_t(*map)[COLS],keyboard_t direction, int* headY, int* headX, int* tail,
+bool Move(object(*map)[COLS],keyboard_t direction, int* headY, int* headX, int* tail,
 	int *mainY,int *mainX, int *appleCnt, int* isApple) 
 {
 	map[mainY[*tail - 1]][mainX[*tail - 1]] = OBJECT_SPACE;
@@ -94,7 +94,7 @@ bool Move(object_t(*map)[COLS],keyboard_t direction, int* headY, int* headX, int
 	return false;
 }
 
-void RandomApple(object_t(*map)[COLS]) {
+void RandomApple(object(*map)[COLS]) {
 	int randX = 0;
 	int randY = 0;
 	while (1) {
@@ -105,7 +105,7 @@ void RandomApple(object_t(*map)[COLS]) {
 	map[randX][randY]=OBJECT_APPLE;
 }
 
-void MapPrint(object_t (*map)[COLS],int *appleCnt) {
+void MapPrint(object (*map)[COLS],int *appleCnt) {
 	printf("현재 먹은 사과의 개수 : %d\n",*appleCnt);
 	for (int i = 0; i < ROWS; ++i) {
 		for (int j = 0; j < COLS; ++j) {
@@ -136,7 +136,7 @@ void MapPrint(object_t (*map)[COLS],int *appleCnt) {
 int main()
 {
 	srand(time(NULL));
-	object_t map[ROWS][COLS] = { OBJECT_SPACE, };
+	object map[ROWS][COLS] = { OBJECT_SPACE, };
 	int appleCnt = 0, isApple = 0, headX = 0, headY = 0, tail = 0;
 	bool gameEnd = false;
 	int* mainX = (int*)malloc(sizeof(int)*ROWS*COLS), * mainY = (int*)malloc(sizeof(int)*ROWS*COLS);

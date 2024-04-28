@@ -5,8 +5,8 @@
 #include<string>
 #include<vector>
 #include<algorithm>
+#include<queue>
 #include<sstream>
-
 #include<windows.h>
 #include<conio.h>
 
@@ -25,7 +25,7 @@
 
 using namespace std;
 
-typedef enum object {
+enum object {
 	OBJECT_SPACE,
 	OBJECT_WALL,
 	OBJECT_HEAD,
@@ -34,37 +34,47 @@ typedef enum object {
 	OBJECT_BOOM,
 	OBJECT_HALF_BOOM,
 	OBJECT_EMPTY_BOOM
-} object_t;
+};
 
-typedef struct BoomInformation {
+struct coordinate {
+	int y;
+	int x;
+};
+
+typedef struct BoomInfo {
 	int x;
 	int y;
 	int time;
-}boomInfo_t;
+};
 
-typedef struct UserRanking {
+struct UserRanking {
 	string name;
 	int score;
-}userRanking_t;
+};
+
+struct SnakeObject {
+	coordinate head;
+	queue <coordinate> tail;
+};
 
 // 전역 변수
-vector<userRanking_t> userRank;
+vector<UserRanking> userRank;
 string userName = "";
 
 void CursorView();
 void gotoxy(int x,int y);
 void InitFile();
-void InitGame(object_t(*map)[COLS], int& headY, int& headX, int& tail, int mainY[ROWS * COLS], int mainX[ROWS * COLS]);
-bool compare(userRanking_t a, userRanking_t b);
+void InitGame(object(*map)[COLS], int& headY, int& headX, int& tail, int mainY[ROWS * COLS], int mainX[ROWS * COLS]);
+bool compare(UserRanking a, UserRanking b);
 int KeyInput(int type);
 void KeyInputGame(int& dir);
 void LoginPage();
-bool Move(object_t(*map)[COLS], int direction, int& headY, int& headX, int& tail,
+bool Move(object(*map)[COLS], int direction, int& headY, int& headX, int& tail,
 	int mainY[ROWS * COLS], int mainX[ROWS * COLS], int& appleCnt, int& isApple, int& fieldAppleCnt);
-void RandomApple(object_t(*map)[COLS], int& fieldAppleCnt);
-void MapPrint(object_t(*map)[COLS], int appleCnt);
-bool IsBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]);
-void RandomBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]);
+void RandomApple(object(*map)[COLS], int& fieldAppleCnt);
+void MapPrint(object(*map)[COLS], int appleCnt);
+bool IsBoom(object(*map)[COLS], BoomInfo boomLocation[BOOM_SIZE]);
+void RandomBoom(object(*map)[COLS], BoomInfo boomLocation[BOOM_SIZE]);
 void StartGame();
 int StartMenu();
 int StartPage();
@@ -128,19 +138,19 @@ void gotoxy(int x, int y) {
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
 }
 
-bool compare(userRanking_t a, userRanking_t b) {
+bool compare(UserRanking a, UserRanking b) {
 	return a.score > b.score;
 }
 
-void InitGame(object_t(*map)[COLS], int& headY, int& headX, int& tail, int mainY[ROWS * COLS], int mainX[ROWS * COLS]) {
+void InitGame(object(*map)[COLS], SnakeObject& snake) {
 	
-	headY = 10;
-	headX = 10;
-	tail = 1;
-	mainY[0] = headY;
-	mainX[0] = headX - 1;
-	map[headY][headX] = OBJECT_HEAD;
-	map[mainY[0]][mainX[0]] = OBJECT_TAIL;
+	snake.head.y = 10;
+	snake.head.x = 10;
+	snake.tail.push({ snake.head.y,snake.head.x - 1 });
+	/*mainY[0] = headY;
+	mainX[0] = headX - 1;*/
+	map[snake.head.y][snake.head.x] = OBJECT_HEAD;
+	map[snake.tail.front().y][snake.tail.front().x] = OBJECT_TAIL;
 
 	//벽 세우기
 	for (int i = 0; i < ROWS; i++) {
@@ -277,48 +287,38 @@ int KeyInput(int type) {
 	}
 }
 
-bool Move(object_t(*map)[COLS], int direction, int& headY, int& headX, int& tail,
-	int mainY[ROWS * COLS], int mainX[ROWS * COLS], int& appleCnt, int& isApple, int& fieldAppleCnt)
+bool Move(object(*map)[COLS], int direction, SnakeObject& snake, int& appleCnt, int& isApple, int& fieldAppleCnt)
 {
-	map[mainY[tail - 1]][mainX[tail - 1]] = OBJECT_SPACE;
-	for (int i = tail - 1; i > 0; i--) {
-		mainY[i] = mainY[i - 1];
-		mainX[i] = mainX[i - 1];
-		map[mainY[i]][mainX[i]] = OBJECT_TAIL;
-	}
+	map[snake.head.y][snake.head.x] = OBJECT_TAIL;
+	snake.tail.push({ snake.head.y,snake.head.x });
 
-	mainY[0] = headY;
-	mainX[0] = headX;
-	map[mainY[0]][mainX[0]] = OBJECT_TAIL;
-
-	if (direction == RIGHT) (headX)++;
-	else if (direction == LEFT) (headX)--;
-	else if (direction == UP) (headY)--;
-	else (headY)++;
+	if (direction == RIGHT) (snake.head.x)++;
+	else if (direction == LEFT) (snake.head.x)--;
+	else if (direction == UP) (snake.head.y)--;
+	else (snake.head.y)++;
 
 	//사과를 먹었을 때
-	if (map[headY][headX] == OBJECT_APPLE) {
-		(tail)++;
+	if (map[snake.head.y][snake.head.x] == OBJECT_APPLE) {
 		(appleCnt)++;
 		--fieldAppleCnt;
-
-		mainY[tail - 1] = mainY[tail - 2] - (mainY[tail - 2] - (tail - 3 >= 0 ? mainY[tail - 3] : headY));
-		mainX[tail - 1] = mainX[tail - 2] - (mainX[tail - 2] - (tail - 3 >= 0 ? mainX[tail - 3] : headX));
-
-		map[mainY[tail - 1]][mainX[tail - 1]] = OBJECT_TAIL;
 	}
 	//벽에 닿았거나 자신의 꼬리에 닿았을 때
-	else if (map[headY][headX] == OBJECT_WALL || map[headY][headX] == OBJECT_TAIL 
-		|| map[headY][headX] == OBJECT_BOOM || map[headY][headX] == OBJECT_HALF_BOOM
-		|| map[headY][headX] == OBJECT_EMPTY_BOOM) {
+	else if (map[snake.head.y][snake.head.x] == OBJECT_WALL || map[snake.head.y][snake.head.x] == OBJECT_TAIL
+		|| map[snake.head.y][snake.head.x] == OBJECT_BOOM || map[snake.head.y][snake.head.x] == OBJECT_HALF_BOOM
+		|| map[snake.head.y][snake.head.x] == OBJECT_EMPTY_BOOM) {
 		return true;
 	}
+	else {
+		map[snake.tail.front().y][snake.tail.front().x] = OBJECT_SPACE;
+		snake.tail.pop();
+	}
 
-	map[headY][headX] = OBJECT_HEAD;
+	map[snake.head.y][snake.head.x] = OBJECT_HEAD;
+	
 	return false;
 }
 
-void RandomApple(object_t(*map)[COLS], int& fieldAppleCnt) {
+void RandomApple(object(*map)[COLS], int& fieldAppleCnt) {
 	int randX = 0;
 	int randY = 0;
 	int temp = rand() % 5 + 1; // 한 번에 생성될 사과 개수
@@ -335,7 +335,7 @@ void RandomApple(object_t(*map)[COLS], int& fieldAppleCnt) {
 	fieldAppleCnt = temp;
 }
 
-void MapPrint(object_t(*map)[COLS], int appleCnt) {
+void MapPrint(object(*map)[COLS], int appleCnt) {
 	cout << "현재 먹은 사과의 개수 : " << appleCnt << "\n";
 	for (int i = 0; i < ROWS; ++i) {
 		for (int j = 0; j < COLS; ++j) {
@@ -373,16 +373,17 @@ void MapPrint(object_t(*map)[COLS], int appleCnt) {
 }
 
 void StartGame() {
-	object_t map[ROWS][COLS] = { OBJECT_SPACE, };
+	object map[ROWS][COLS] = { OBJECT_SPACE, };
 	int appleCnt = 0, fieldAppleCnt = 0, isApple = 0, headX = 0, headY = 0, tail = 0;
 	bool gameEnd = false;
+	SnakeObject snake;
 	int* mainX = new int[ROWS * COLS], * mainY = new int[ROWS * COLS];
-	boomInfo_t* boomLocation = new boomInfo_t[BOOM_SIZE] {};
+	BoomInfo* boomLocation = new BoomInfo[BOOM_SIZE] {};
 	bool isBoom = true;
 	char key;
 	int dir = RIGHT;
 
-	InitGame(map, headY, headX, tail, mainY, mainX);
+	InitGame(map, snake);
 
 	while (1) {
 		if (fieldAppleCnt <= 0) {
@@ -394,7 +395,7 @@ void StartGame() {
 
 		KeyInputGame(dir);
 
-		gameEnd = Move(map, dir, headY, headX, tail, mainY, mainX, appleCnt, isApple, fieldAppleCnt);
+		gameEnd = Move(map, dir, snake, appleCnt, isApple, fieldAppleCnt);
 
 		MapPrint(map, appleCnt);
 		if (gameEnd) {
@@ -479,7 +480,7 @@ int StartPage() {
 	return StartMenu();
 }
 
-bool IsBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]) {
+bool IsBoom(object(*map)[COLS], BoomInfo boomLocation[BOOM_SIZE]) {
 	bool flag = true;
 	for (int i = 0; i < BOOM_SIZE; i++) {
 		if (boomLocation[i].time != 0) {
@@ -499,7 +500,7 @@ bool IsBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]) {
 	return flag;
 }
 
-void RandomBoom(object_t(*map)[COLS], boomInfo_t boomLocation[BOOM_SIZE]) {
+void RandomBoom(object(*map)[COLS], BoomInfo boomLocation[BOOM_SIZE]) {
 	int createBoomCnt = rand() % BOOM_SIZE;
 	for (int i = 0; i < createBoomCnt; i++) {
 		while (1) {
