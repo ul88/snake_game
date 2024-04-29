@@ -9,7 +9,9 @@
 #include<sstream>
 #include<windows.h>
 #include<conio.h>
-#include<cstdlib>
+#include<mmsystem.h>
+
+#pragma comment(lib, "winmm.lib")
 
 #define ENTER 13
 #define ESC 27
@@ -37,6 +39,12 @@ enum object {
 	OBJECT_EMPTY_BOOM
 };
 
+enum music {
+	MAIN_MUSIC,
+	GAME_MUSIC,
+	GAME_OVER_MUSIC
+};
+
 struct Coordinate {
 	int y;
 	int x;
@@ -61,6 +69,7 @@ struct SnakeObject {
 // 전역 변수
 vector<UserRanking> userRank;
 string userName = "";
+bool music[4] = { 0,0,0,0 }; // 음악 환경 설정 true == 켜기, false == 끄기
 
 void CursorView();
 void gotoxy(int x,int y);
@@ -77,10 +86,12 @@ void MapPrint(object(*map)[COLS], int appleCnt);
 bool IsBoom(object(*map)[COLS], BoomInfo boomLocation[BOOM_SIZE]);
 void RandomBoom(object(*map)[COLS], BoomInfo boomLocation[BOOM_SIZE]);
 void StartGame();
+void GameOverPage(int appleCnt);
 int StartMenu();
 int StartPage();
 int RankCheck(int appleCnt);
 void RankShow();
+void SettingsShow();
 
 int main()
 {
@@ -90,7 +101,7 @@ int main()
 	int start = 0;
 
 	system("title 스네이크 게임");
-
+	
 	InitFile();
 	LoginPage();
 	while (1) {
@@ -102,6 +113,9 @@ int main()
 		}
 		else if (start == 2) {
 			RankShow();
+		}
+		else if (start == 3) {
+			SettingsShow();
 		}
 		else {
 			break;
@@ -211,25 +225,7 @@ void KeyInputGame(int& dir) {
 
 int KeyInput(int type) {
 	char key;
-	if (type == 1) {
-		if (_kbhit()) {
-			while (_kbhit()) _getch();
-		}
-		key = _getch();
-		if (key == -32) {
-			key = _getch();
-		}
-		switch (key) {
-		case ENTER:
-			system("cls");
-			return 0;
-			break;
-		default:
-			break;
-		}
-		return 1;
-	}
-	else if (type == 2) {
+	if (type == 2) {
 		int x = 21;
 		int y = 11;
 		while (1) {
@@ -240,7 +236,7 @@ int KeyInput(int type) {
 				}
 				switch (key) {
 				case UP:
-					if (y > 11 && y<=13) {
+					if (y > 11 && y<=14) {
 						gotoxy(x - 2, y);
 						cout << " ";
 						gotoxy(x - 2, --y);
@@ -248,7 +244,7 @@ int KeyInput(int type) {
 					}
 					break;
 				case DOWN:
-					if (y >= 11 && y < 13) {
+					if (y >= 11 && y < 14) {
 						gotoxy(x - 2, y);
 						cout << " ";
 						gotoxy(x - 2, ++y);
@@ -261,6 +257,9 @@ int KeyInput(int type) {
 					}
 					else if (y == 12) {
 						return 2;
+					}
+					else if (y == 13) {
+						return 3;
 					}
 					else {
 						return 0;
@@ -287,6 +286,55 @@ int KeyInput(int type) {
 			break;
 		}
 		return 0;
+	}
+	else if (type == 4) {
+		int x = 21;
+		int y = 11;
+		while (1) {
+			if (_kbhit()) {
+				key = _getch();
+				if (key == -32) {
+					key = _getch();
+				}
+				switch (key) {
+				case UP:
+					if (y > 11 && y <= 14) {
+						gotoxy(x - 2, y);
+						cout << " ";
+						gotoxy(x - 2, --y);
+						cout << ">";
+					}
+					break;
+				case DOWN:
+					if (y >= 11 && y < 14) {
+						gotoxy(x - 2, y);
+						cout << " ";
+						gotoxy(x - 2, ++y);
+						cout << ">";
+					}
+					break;
+				case ENTER:
+					if (y == 11) {
+						music[0] = !music[0];
+						return 1;
+					}
+					else if (y == 12) {
+						music[1] = !music[1];
+						return 1;
+					}
+					else if (y == 13) {
+						music[2] = !music[2];
+						return 1;
+					}
+					else {
+						return 0;
+					}
+					break;
+				default:
+					break;
+				}
+			}
+		}
 	}
 }
 
@@ -387,6 +435,12 @@ void StartGame() {
 	int dir = RIGHT;
 
 	InitGame(map, snake);
+	if (music[GAME_MUSIC]) {
+		PlaySoundA("game_music.wav", NULL, SND_FILENAME | SND_ASYNC);
+	}
+	else {
+		PlaySound(nullptr, nullptr, 0);
+	}
 
 	while (1) {
 		if (fieldAppleCnt <= 0) {
@@ -402,19 +456,6 @@ void StartGame() {
 
 		MapPrint(map, appleCnt);
 		if (gameEnd) {
-			cout << "사망하셨습니다.\n";
-			Sleep(3000);
-			system("cls");
-			cout << "\n\n";
-			cout << "#####    ##    #    ####" << "\n";
-			cout << "#        # #   #    #   #" << "\n";
-			cout << "#####    #  #  #    #   #" << "\n";
-			cout << "#        #   # #    #   #" << "\n";
-			cout << "#####    #    ##    ####" << "\n\n";
-			cout << "총 먹은 사과의 개수 : " << appleCnt << "개 입니다.\n";
-			userRank.push_back({userName,appleCnt});
-			sort(userRank.begin(), userRank.end(),compare);
-			cout << userName << "님의 순위는 " << RankCheck(appleCnt) << "입니다.\n";
 			
 			//파일 쓰기
 			ofstream file("rank_data.txt", ios::app);
@@ -423,9 +464,9 @@ void StartGame() {
 				file << line;
 				file.close();
 			}
+			
+			GameOverPage(appleCnt);
 
-			cout << "엔터 키를 누르시면 시작 화면으로 돌아갑니다.";
-			while (KeyInput(1));
 			break;
 		}
 		Sleep(200);
@@ -438,6 +479,12 @@ void StartGame() {
 }
 
 int StartMenu() {
+	if (music[MAIN_MUSIC]) {
+		PlaySoundA("main_music.wav", NULL, SND_FILENAME | SND_ASYNC);
+	}
+	else {
+		PlaySound(nullptr, nullptr, 0);
+	}
 	int x = 21;
 	int y = 11;
 	gotoxy(x - 2, y);
@@ -445,6 +492,8 @@ int StartMenu() {
 	gotoxy(x, y + 1);
 	cout << "RANK";
 	gotoxy(x, y + 2);
+	cout << "SETTINGS";
+	gotoxy(x, y + 3);
 	cout << "END";
 
 	return KeyInput(2);
@@ -455,6 +504,7 @@ void LoginPage() {
 	cout << "USER NAME : ";
 	cin >> userName;
 	CursorView();
+	
 	system("cls");
 	cout << "\n\n";
 	cout << "    " << userName << "님 환영합니다!" << "\n";
@@ -585,5 +635,94 @@ void RankShow() {
 		}
 		if (KeyInput(3)) return;
 		Sleep(1500);
+	}
+}
+
+void GameOverPage(int appleCnt) {
+	if (music[GAME_OVER_MUSIC]) {
+		PlaySoundA("game_over.wav", 0, SND_FILENAME | SND_ASYNC);
+	}
+	else {
+		PlaySound(nullptr, nullptr, 0);
+	}
+
+	Sleep(500);
+	gotoxy(0, 0);
+	cout << "                           ";
+	for (int i = 0; i < COLS*2; i++) {
+		int x = i;
+		int y = 1;
+		while (x >= 0 && x <= COLS*2 && y >= 0 && y <= ROWS) {
+			gotoxy(x, y);
+			cout << " ";
+			x--,y++;
+		}
+		Sleep(10);
+	}
+	for (int i = 1; i <= ROWS; i++) {
+		int x = COLS*2-1;
+		int y = i;
+		while (x >= 0 && x <= COLS * 2 && y >= 0 && y <= ROWS) {
+			gotoxy(x, y);
+			cout << " ";
+			x--, y++;
+		}
+		Sleep(10);
+	}
+
+	system("cls");
+	gotoxy(0, 8);
+	cout << "총 먹은 사과의 개수 : " << appleCnt << "개 입니다.\n";
+	userRank.push_back({ userName,appleCnt });
+	sort(userRank.begin(), userRank.end(), compare);
+	cout << userName << "님의 순위는 " << RankCheck(appleCnt) << "위 입니다.\n";
+	cout << "엔터 키를 누르시면 시작 화면으로 돌아갑니다.";
+	while (1) {
+		gotoxy(0, 0);
+		cout << "\n\n";
+		cout << "#####    ##    #    ####" << "\n";
+		cout << "#        # #   #    #   #" << "\n";
+		cout << "#####    #  #  #    #   #" << "\n";
+		cout << "#        #   # #    #   #" << "\n";
+		cout << "#####    #    ##    ####" << "\n\n";
+		Sleep(600);
+		if (KeyInput(3)) return;
+		gotoxy(0, 0);
+		if (KeyInput(3)) return;
+		cout << "\n\n";
+		cout << "                         " << "\n";
+		cout << "                         " << "\n";
+		cout << "                         " << "\n";
+		cout << "                         " << "\n";
+		cout << "                         " << "\n";
+		Sleep(600);
+		if (KeyInput(3)) return;	
+	}
+}
+
+void SettingsShow() {
+	int x = 21;
+	int y = 11;
+	gotoxy(x - 2, y);
+	cout << "         ";
+	gotoxy(x - 2, y + 1);
+	cout << "         ";
+	gotoxy(x - 2, y + 2);
+	cout << "         ";
+	gotoxy(x - 2, y + 3);
+	cout << "         ";
+	gotoxy(x - 2, y);
+	cout << "> 메인 음악 " << (music[0] ? "끄기" : "켜기");
+	gotoxy(x, y + 1);
+	cout << "인 게임 음악 " << (music[1] ? "끄기" : "켜기");
+	gotoxy(x, y + 2);
+	cout << "사망시 효과음 " << (music[2] ? "끄기" : "켜기");
+	gotoxy(x, y + 3);
+	cout << "뒤로가기";
+	if (KeyInput(4)) {
+		SettingsShow();
+	}
+	else {
+		return;
 	}
 }
