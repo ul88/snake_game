@@ -19,9 +19,6 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <Media Include="sound.wav">
-      <Filter>Source</Filter>
-    </Media>
     <Media Include="game_over.wav">
       <Filter>Source</Filter>
     </Media>

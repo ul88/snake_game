@@ -138,7 +138,6 @@
   </ItemGroup>
   <ItemGroup>
     <Media Include="game_over.wav" />
-    <Media Include="sound.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
