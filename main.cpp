@@ -9,6 +9,7 @@
 #include<sstream>
 #include<windows.h>
 #include<conio.h>
+#include<cstdlib>
 
 #define ENTER 13
 #define ESC 27
@@ -36,7 +37,7 @@ enum object {
 	OBJECT_EMPTY_BOOM
 };
 
-struct coordinate {
+struct Coordinate {
 	int y;
 	int x;
 };
@@ -53,8 +54,8 @@ struct UserRanking {
 };
 
 struct SnakeObject {
-	coordinate head;
-	queue <coordinate> tail;
+	Coordinate head;
+	queue <Coordinate> tail;
 };
 
 // 전역 변수
@@ -87,6 +88,9 @@ int main()
 	srand(time(NULL));
 	
 	int start = 0;
+
+	system("title 스네이크 게임");
+
 	InitFile();
 	LoginPage();
 	while (1) {
@@ -126,8 +130,7 @@ void CursorView() {
 	CONSOLE_CURSOR_INFO cursorInfo;
 	cursorInfo.dwSize = 1;
 	cursorInfo.bVisible = false; //커서 Visible TRUE(보임) FALSE(숨김)
-	system("title 스네이크 게임");
-	system("mod con: lines=1000 cols=1000");
+	system("mode con: lines=70 cols=70");
 	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
 }
 
@@ -534,28 +537,28 @@ void RankShow() {
 		int time = 150;
 		system("cls");
 		cout << "#####      #      ##    #    #  #" << "\n";
-		if (KeyInput(3)) break;
+		if (KeyInput(3)) return;
 		Sleep(time);
 		cout << "#   #     # #     # #   #    # #" << "\n";
-		if (KeyInput(3)) break;
+		if (KeyInput(3)) return;
 		Sleep(time);
 		cout << "#####    #   #    #  #  #    ##" << "\n";
-		if (KeyInput(3)) break;
+		if (KeyInput(3)) return;
 		Sleep(time);
 		cout << "#  #    #######   #   # #    # #" << "\n";
-		if (KeyInput(3)) break;
+		if (KeyInput(3)) return;
 		Sleep(time);
 		cout << "#   #  #       #  #    ##    #  #" << "\n";
-		if (KeyInput(3)) break;
+		if (KeyInput(3)) return;
 		Sleep(time);
 		cout << "---------------------------------"<<"\n";
-		if (KeyInput(3)) break;
+		if (KeyInput(3)) return;
 		Sleep(time);
 		cout << "| 순 위 |      이름     | 점 수 |" << "\n";
-		if (KeyInput(3)) break;
+		if (KeyInput(3)) return;
 		Sleep(time);
 		cout << "---------------------------------" << "\n";
-		if (KeyInput(3)) break;
+		if (KeyInput(3)) return;
 		Sleep(time);
 		int y = 8;
 		int rank = 1;
@@ -563,7 +566,7 @@ void RankShow() {
 			if (i != 0) {
 				if (userRank[i].score != userRank[i - 1].score) rank++;
 			}
-			if (KeyInput(3)) break;
+			if (KeyInput(3)) return;
 			Sleep(time);
 			gotoxy(0, y);
 			//cout << "| " << i + 1;
@@ -575,12 +578,12 @@ void RankShow() {
 			printf("| %3d", userRank[i].score);
 			gotoxy(32, y);
 			cout << "|" << "\n";
-			if (KeyInput(3)) break;
+			if (KeyInput(3)) return;
 			Sleep(time);
 			cout << "---------------------------------" << "\n";
 			y += 2;
 		}
-		if (KeyInput(3)) break;
+		if (KeyInput(3)) return;
 		Sleep(1500);
 	}
 }
