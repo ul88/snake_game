@@ -8,3 +8,10 @@
 <hr>
 
 ![image](https://github.com/ul88/snake_game/assets/127708502/b4e62a81-89c9-4516-92d8-174321a06e94)
+
+
+
+BGM 출처:
+https://www.premiumbeat.com/ko/royalty-free-tracks/game-of-rings
+https://www.youtube.com/watch?v=kIBwWd2_NT8&list=PLdo0qHuf3H2ffnJlRmy88XYsfqhyOYNvV&index=6
+https://esffects.net/ko/65.html
