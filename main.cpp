@@ -101,7 +101,8 @@ int main()
 	int start = 0;
 
 	system("title 스네이크 게임");
-	
+	system("mode con: lines=30 cols=50");
+
 	InitFile();
 	LoginPage();
 	while (1) {
@@ -144,7 +145,6 @@ void CursorView() {
 	CONSOLE_CURSOR_INFO cursorInfo;
 	cursorInfo.dwSize = 1;
 	cursorInfo.bVisible = false; //커서 Visible TRUE(보임) FALSE(숨김)
-	system("mode con: lines=70 cols=70");
 	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
 }
 
@@ -407,13 +407,13 @@ void MapPrint(object(*map)[COLS], int appleCnt) {
 				cout << "A ";
 				break;
 			case OBJECT_BOOM:
-				cout << "● ";
+				cout << "●";
 				break;
 			case OBJECT_HALF_BOOM:
-				cout << "◎ ";
+				cout << "◎";
 				break;
 			case OBJECT_EMPTY_BOOM:
-				cout << "⊙ ";
+				cout << "⊙";
 				break;
 			default:
 				break;
@@ -515,7 +515,7 @@ void LoginPage() {
 		Sleep(350);
 		if (KeyInput(3)) break;
 		gotoxy(4, 3);
-		cout << "                " << "\n";
+		cout << "                     " << "\n";
 		Sleep(350);
 		if (KeyInput(3)) break;
 	}
@@ -523,11 +523,11 @@ void LoginPage() {
 
 int StartPage() {
 	cout << "\n\n";
-	cout << "#####    ##    #       #       #  #    #####" << "\n";
-	cout << "#        # #   #      # #      # #     #" << "\n";
-	cout << "#####    #  #  #     #   #     ##      #####" << "\n";
-	cout << "     #   #   # #    #######    # #     #" << "\n";
-	cout << "#####    #    ##   #       #   #  #    #####" << "\n";
+	cout << " #####    ##    #       #       #  #   #####" << "\n";
+	cout << "#         # #   #      # #      # #    #" << "\n";
+	cout << " #####    #  #  #     #   #     ##     #####" << "\n";
+	cout << "      #   #   # #    #######    # #    #" << "\n";
+	cout << " #####    #    ##   #       #   #  #   #####" << "\n";
 	cout << "           방향키로 선택해주세요.\n";
 	cout << "    엔터를 누르시면 커서의 위치에서 시작됩니다.\n";
 	return StartMenu();
@@ -586,19 +586,19 @@ void RankShow() {
 	while (1) {
 		int time = 150;
 		system("cls");
-		cout << "#####      #      ##    #    #  #" << "\n";
+		cout << "#####      #      ##    #   #  #" << "\n";
 		if (KeyInput(3)) return;
 		Sleep(time);
-		cout << "#   #     # #     # #   #    # #" << "\n";
+		cout << "#   #     # #     # #   #   # #" << "\n";
 		if (KeyInput(3)) return;
 		Sleep(time);
-		cout << "#####    #   #    #  #  #    ##" << "\n";
+		cout << "#####    #   #    #  #  #   ##" << "\n";
 		if (KeyInput(3)) return;
 		Sleep(time);
-		cout << "#  #    #######   #   # #    # #" << "\n";
+		cout << "#  #    #######   #   # #   # #" << "\n";
 		if (KeyInput(3)) return;
 		Sleep(time);
-		cout << "#   #  #       #  #    ##    #  #" << "\n";
+		cout << "#   #  #       #  #    ##   #  #" << "\n";
 		if (KeyInput(3)) return;
 		Sleep(time);
 		cout << "---------------------------------"<<"\n";
