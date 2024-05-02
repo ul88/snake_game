@@ -501,20 +501,20 @@ int StartMenu() {
 
 void LoginPage() {
 	cout << "\n\n";
-	cout << "USER NAME : ";
+	cout << "                  USER NAME :\n                  ";
 	cin >> userName;
 	CursorView();
 	
 	system("cls");
 	cout << "\n\n";
-	cout << "    " << userName << "님 환영합니다!" << "\n";
+	cout << "                " << userName << "님 환영합니다!" << "\n";
 	while (1) {
-		gotoxy(4, 3);
+		gotoxy(16, 3);
 		cout << "엔터키를 누르시오" << "\n";
 		if (KeyInput(3)) break;
 		Sleep(350);
 		if (KeyInput(3)) break;
-		gotoxy(4, 3);
+		gotoxy(16, 3);
 		cout << "                     " << "\n";
 		Sleep(350);
 		if (KeyInput(3)) break;
@@ -523,11 +523,11 @@ void LoginPage() {
 
 int StartPage() {
 	cout << "\n\n";
-	cout << " #####    ##    #       #       #  #   #####" << "\n";
-	cout << "#         # #   #      # #      # #    #" << "\n";
-	cout << " #####    #  #  #     #   #     ##     #####" << "\n";
-	cout << "      #   #   # #    #######    # #    #" << "\n";
-	cout << " #####    #    ##   #       #   #  #   #####" << "\n";
+	cout << "    #####    ##    #       #       #  #   #####" << "\n";
+	cout << "   #         # #   #      # #      # #    #" << "\n";
+	cout << "    #####    #  #  #     #   #     ##     #####" << "\n";
+	cout << "         #   #   # #    #######    # #    #" << "\n";
+	cout << "    #####    #    ##   #       #   #  #   #####" << "\n";
 	cout << "           방향키로 선택해주세요.\n";
 	cout << "    엔터를 누르시면 커서의 위치에서 시작됩니다.\n";
 	return StartMenu();
@@ -586,28 +586,28 @@ void RankShow() {
 	while (1) {
 		int time = 150;
 		system("cls");
-		cout << "#####      #      ##    #   #  #" << "\n";
+		cout << "        #####      #      ##    #   #  #" << "\n";
 		if (KeyInput(3)) return;
 		Sleep(time);
-		cout << "#   #     # #     # #   #   # #" << "\n";
+		cout << "        #   #     # #     # #   #   # #" << "\n";
 		if (KeyInput(3)) return;
 		Sleep(time);
-		cout << "#####    #   #    #  #  #   ##" << "\n";
+		cout << "        #####    #   #    #  #  #   ##" << "\n";
 		if (KeyInput(3)) return;
 		Sleep(time);
-		cout << "#  #    #######   #   # #   # #" << "\n";
+		cout << "        #  #    #######   #   # #   # #" << "\n";
 		if (KeyInput(3)) return;
 		Sleep(time);
-		cout << "#   #  #       #  #    ##   #  #" << "\n";
+		cout << "        #   #  #       #  #    ##   #  #" << "\n";
 		if (KeyInput(3)) return;
 		Sleep(time);
-		cout << "---------------------------------"<<"\n";
+		cout << "        ---------------------------------"<<"\n";
 		if (KeyInput(3)) return;
 		Sleep(time);
-		cout << "| 순 위 |      이름     | 점 수 |" << "\n";
+		cout << "        | 순 위 |      이름     | 점 수 |" << "\n";
 		if (KeyInput(3)) return;
 		Sleep(time);
-		cout << "---------------------------------" << "\n";
+		cout << "        ---------------------------------" << "\n";
 		if (KeyInput(3)) return;
 		Sleep(time);
 		int y = 8;
@@ -618,19 +618,19 @@ void RankShow() {
 			}
 			if (KeyInput(3)) return;
 			Sleep(time);
-			gotoxy(0, y);
+			gotoxy(8, y);
 			//cout << "| " << i + 1;
 			printf("| %3d", rank);
-			gotoxy(8, y);
+			gotoxy(16, y);
 			cout << "| " << userRank[i].name;
-			gotoxy(24, y);
+			gotoxy(32, y);
 			//cout << "| " << userRank[i].score;
 			printf("| %3d", userRank[i].score);
-			gotoxy(32, y);
+			gotoxy(40, y);
 			cout << "|" << "\n";
 			if (KeyInput(3)) return;
 			Sleep(time);
-			cout << "---------------------------------" << "\n";
+			cout << "        ---------------------------------" << "\n";
 			y += 2;
 		}
 		if (KeyInput(3)) return;
