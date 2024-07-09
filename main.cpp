@@ -7,7 +7,7 @@
 #include<algorithm>
 #include<queue>
 #include<sstream>
-#include<windows.h>
+#include<Windows.h>
 #include<conio.h>
 #include<mmsystem.h>
 
@@ -95,13 +95,12 @@ void SettingsShow();
 
 int main()
 {
-	ios::sync_with_stdio(0);
 	srand(time(NULL));
 	
 	int start = 0;
 
 	system("title 스네이크 게임");
-	system("mode con: lines=30 cols=50");
+	system("mode con: lines=40 cols=50");
 
 	InitFile();
 	LoginPage();
@@ -160,7 +159,7 @@ bool compare(UserRanking a, UserRanking b) {
 }
 
 void InitGame(object(*map)[COLS], SnakeObject& snake) {
-	
+	system("mode con: lines=60 cols=60");
 	snake.head.y = 10;
 	snake.head.x = 10;
 	snake.tail.push({ snake.head.y,snake.head.x - 1 });
@@ -277,6 +276,7 @@ int KeyInput(int type) {
 		if (key == -32) {
 			key = _getch();
 		}
+		while (_kbhit()) _getch();
 		switch (key) {
 		case ENTER:
 			system("cls");
@@ -388,8 +388,8 @@ void RandomApple(object(*map)[COLS], int& fieldAppleCnt) {
 
 void MapPrint(object(*map)[COLS], int appleCnt) {
 	cout << "현재 먹은 사과의 개수 : " << appleCnt << "\n";
-	for (int i = 0; i < ROWS; ++i) {
-		for (int j = 0; j < COLS; ++j) {
+	for (int i = 0; i < ROWS; i++) {
+		for (int j = 0; j < COLS; j++) {
 			switch (map[i][j]) {
 			case OBJECT_SPACE:
 				cout << ". ";
@@ -407,13 +407,13 @@ void MapPrint(object(*map)[COLS], int appleCnt) {
 				cout << "A ";
 				break;
 			case OBJECT_BOOM:
-				cout << "●";
+				cout << "● ";
 				break;
 			case OBJECT_HALF_BOOM:
-				cout << "◎";
+				cout << "◎ ";
 				break;
 			case OBJECT_EMPTY_BOOM:
-				cout << "⊙";
+				cout << "⊙ ";
 				break;
 			default:
 				break;
@@ -633,6 +633,7 @@ void RankShow() {
 			cout << "        ---------------------------------" << "\n";
 			y += 2;
 		}
+
 		if (KeyInput(3)) return;
 		Sleep(1500);
 	}
@@ -646,6 +647,8 @@ void GameOverPage(int appleCnt) {
 		PlaySound(nullptr, nullptr, 0);
 	}
 
+
+	//화면 사선으로 지우기
 	Sleep(500);
 	gotoxy(0, 0);
 	cout << "                           ";
@@ -677,6 +680,7 @@ void GameOverPage(int appleCnt) {
 	sort(userRank.begin(), userRank.end(), compare);
 	cout << userName << "님의 순위는 " << RankCheck(appleCnt) << "위 입니다.\n";
 	cout << "엔터 키를 누르시면 시작 화면으로 돌아갑니다.";
+	while (_kbhit()) _getch();
 	while (1) {
 		gotoxy(0, 0);
 		cout << "\n\n";
